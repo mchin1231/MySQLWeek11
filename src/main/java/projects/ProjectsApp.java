@@ -1,6 +1,7 @@
 package projects;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -14,9 +15,15 @@ public class ProjectsApp {
 
 	private Scanner scanner = new Scanner(System.in);
 
-	// @formatter: off
-	private List<String> operations = List.of("1) Add a project");
-	// @formatter: on
+	private Project curProject;
+
+	// @formatter:off
+	private List<String> operations = List.of(
+			"1) Add a project",
+			"2) List projects",
+			"3) Select a project"
+			);
+	// @formatter:on
 
 	public static void main(String[] args) {
 
@@ -39,14 +46,45 @@ public class ProjectsApp {
 					createProject();
 					break;
 
+				case 2:
+					listProjects();
+					break;
+
+				case 3:
+					selectProject();
+					break;
+
 				default:
 					System.out.println("\n" + selection + " is not a valid selection. Please try again.");
 					break;
 				}
 			} catch (Exception e) {
 				System.out.println("\nError: " + e + " Try again.");
+				e.printStackTrace();
 			}
 		}
+	}
+
+	private void selectProject() throws SQLException {
+		listProjects();
+		Integer projectId = getIntInput("Enter a project ID to select a project.");
+
+		/* Deselect current project */
+		curProject = null;
+
+		/* This throws an exception if an invalid project ID is entered. */
+		curProject = projectService.fetchProjectById(projectId);
+	}
+
+	private void listProjects() throws SQLException {
+
+		List<Project> projects = projectService.fetchAllProjects();
+
+		System.out.println("\nProjects:");
+
+		projects.forEach(
+				project -> System.out.println("   " + project.getProjectId() + ": " + project.getProjectName()));
+
 	}
 
 	private void createProject() {
@@ -120,7 +158,14 @@ public class ProjectsApp {
 
 	private void printOperations() {
 		System.out.println("\nThese are the available selections. Press the Enter key to quit: ");
+
 		operations.forEach(line -> System.out.println("   " + line));
+
+		if (Objects.isNull(curProject)) {
+			System.out.println("\nYou are not working with a project.");
+		} else {
+			System.out.println("\nYou are working with a project: " + curProject);
+		}
 	}
 
 }
